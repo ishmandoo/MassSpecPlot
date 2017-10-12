@@ -19,6 +19,7 @@ class SpecNorm:
 class AuxPlots:
 	SOURCE_CURRENT = {'x':'current (nA)', 'multiplier': 1000000000.}
 	DETECTOR_CURRENT = {'x':'detector counts (kcps)', 'multiplier': 1.}
+	DETECTOR_SOURCE_RATIO = {'x':'ratio', 'multiplier': 1.}
 	L1_VOLTAGE = {'x':'voltage (V)', 'multiplier': 1.}
 	L2_VOLTAGE = {'x':'voltage (V)', 'multiplier': 1.}
 	PRESSURE = {'x':'pressure (kPa)', 'multiplier': 1.}
@@ -144,14 +145,22 @@ class Spectrum:
 
 		if aux_plot_type == AuxPlots.SOURCE_CURRENT:
 			data = np.array([scan.i * aux_plot_type['multiplier'] for scan in self.scans[scan_start:scan_end]])
+
 		elif aux_plot_type == AuxPlots.DETECTOR_CURRENT:
 			data = np.array([scan.intensity * aux_plot_type['multiplier'] for scan in self.scans[scan_start:scan_end]])
+
+		elif aux_plot_type == AuxPlots.DETECTOR_SOURCE_RATIO:
+			data = np.array([(scan.intensity / scan.i) * aux_plot_type['multiplier'] for scan in self.scans[scan_start:scan_end]])
+
 		elif aux_plot_type == AuxPlots.L1_VOLTAGE:
 			data = np.array([scan.vl1 * aux_plot_type['multiplier'] for scan in self.scans[scan_start:scan_end]])
+
 		elif aux_plot_type == AuxPlots.L2_VOLTAGE:
 			data = np.array([scan.vl2 * aux_plot_type['multiplier'] for scan in self.scans[scan_start:scan_end]])
+
 		elif aux_plot_type == AuxPlots.PRESSURE:
 			data = np.array([scan.p * aux_plot_type['multiplier'] for scan in self.scans[scan_start:scan_end]])
+
 		else:
 			raise ValueError('Invalid Aux Plot Type')
 		times = np.array([scan.t for scan in self.scans[scan_start:scan_end]])
