@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-
+plt.rcParams['animation.ffmpeg_path'] = u"C:\\Program Files\\ImageMagick-7.0.7-Q16\\ffmpeg.exe"
 fig, ax = plt.subplots()
 xdata, ydata = [], []
 ln, = plt.plot([], [], 'ro', animated=True)
@@ -19,4 +19,5 @@ def update(frame):
 
 ani = FuncAnimation(fig, update, frames=np.linspace(0, 2*np.pi, 128),
                     init_func=init, blit=True)
+ani.save("test.gif", writer='ffmpeg')
 plt.show()
