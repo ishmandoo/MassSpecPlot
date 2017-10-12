@@ -9,6 +9,7 @@ import numpy as np
 import csv  
 from bisect import bisect_left
 from matplotlib.patches import Rectangle
+import os
 
 
 
@@ -56,9 +57,33 @@ class Marker:
 class Spectrum:
 	def __init__(self, scans = []):
 		self.scans = scans
+		self.path = None
 
-	def load(self, specPath, auxPath):
+	def load(self, path, specPath=None, auxPath=None):
 		lines = None
+		self.path = path
+		if specPath == None:
+			options = ['spec.cd','spec.cdf']
+			for option in options:
+				optionPath = os.path.join(path, "mass spec", option)
+				if os.path.isfile(optionPath):
+					specPath = optionPath
+
+		if auxPath == None:
+			options = ['ivpt.tsv']
+			for option in options:
+				optionPath = os.path.join(path, "ivpt", option)
+				if os.path.isfile(optionPath):
+					auxPath = optionPath
+
+		if specPath == None:
+			raise IOError("Missing spectrum file")
+
+		if auxPath == None:
+			raise IOError("Missing aux file")
+
+		print("loading\ncdf -> %s\naux -> %s"%(specPath, auxPath)) 
+
 		with open(auxPath,'r') as tsv:
 		    lines = [line.strip().split('\t') for line in tsv]
 		    
@@ -279,7 +304,7 @@ class Spectrum:
 
 		return aux, rect
 
-	def makeAnimation(self, path, mass_range, scan_range, window, step, normalization=SpecNorm.SCAN, markers = [], aux_plot_type=AuxPlots.SOURCE_CURRENT, aux_plot_type_2=None, manual_norm_range=(0,0), local_norm_scan_range=(0,0)):
+	def makeAnimation(self, mass_range, scan_range, window, step, out_name = None, normalization=SpecNorm.SCAN, markers = [], aux_plot_type=AuxPlots.SOURCE_CURRENT, aux_plot_type_2=None, manual_norm_range=(0,0), local_norm_scan_range=(0,0)):
 		# unpack the beginning and end of the mass ranges and scan ranges
 		scan_start, scan_end = scan_range
 
@@ -330,7 +355,8 @@ class Spectrum:
 		#Writer = writers['ffmpeg']
 		#FFWriter = Writer(fps=15)
 		#writer = animation.AVConvFileWriter()
-		#ani.save(path)
+		if not out_name == None:
+			ani.save(os.path.join(self.path, out_name))
 		plt.show()
 
 
