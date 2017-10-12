@@ -15,6 +15,8 @@ from matplotlib.patches import Rectangle
 class SpecNorm:
 	GLOBAL = 0
 	SCAN = 1
+	MANUAL = 2
+	LOCAL = 3
 
 class AuxPlots:
 	SOURCE_CURRENT = {'x':'current (nA)', 'multiplier': 1000000000.}
@@ -221,7 +223,7 @@ class Spectrum:
 		aux.set_data(times[:window_end_relative],data[:window_end_relative])			
 		info_text.set_text("scans %d - %d\n%.0fs - %.0fs\n%.2f nA" % (window_start, window_end, window_start_time, window_end_time, currents[window_start_relative]))
 
-	def initSpecPlot(self, ax, intensities_list, mass_range, normalization):
+	def initSpecPlot(self, ax, intensities_list, mass_range, normalization, manual_norm_range, local_norm_scan_range):
 		mass_start, mass_end = mass_range
 
 		# the size of the pool of text objects for displaying peak masses
@@ -236,6 +238,13 @@ class Spectrum:
 		ax.set_xlim(mass_start - 0.05 * mass_end, 1.05 * mass_end)
 		if normalization == SpecNorm.GLOBAL:
 			ax.set_ylim(0, 1.2 * max([max(intensities) for intensities in intensities_list]))
+
+		elif normalization == SpecNorm.MANUAL:
+			ax.set_ylim(manual_norm_range[0], manual_norm_range[1])
+
+		elif normalization == SpecNorm.LOCAL:
+			scan_start, scan_end = local_norm_scan_range
+			ax.set_ylim(0, 1.2 * max([max(intensities) for intensities in intensities_list[local_norm_scan_range[0]:local_norm_scan_range[1]] ]))
 
 		ax.set_xlabel("m/q (amu/e)")
 		ax.set_ylabel("intensity")
@@ -270,7 +279,7 @@ class Spectrum:
 
 		return aux, rect
 
-	def makeAnimation(self, path, mass_range, scan_range, window, step, normalization=SpecNorm.SCAN, markers = [], aux_plot_type=AuxPlots.SOURCE_CURRENT, aux_plot_type_2=None):
+	def makeAnimation(self, path, mass_range, scan_range, window, step, normalization=SpecNorm.SCAN, markers = [], aux_plot_type=AuxPlots.SOURCE_CURRENT, aux_plot_type_2=None, manual_norm_range=(0,0), local_norm_scan_range=(0,0)):
 		# unpack the beginning and end of the mass ranges and scan ranges
 		scan_start, scan_end = scan_range
 
@@ -295,7 +304,7 @@ class Spectrum:
 		plt.tight_layout(pad=2, w_pad=1.8, h_pad=5, rect=[0.05, 0, 0.85, 1])
 
 
-		ln, pk, pkTxt, infoTxt = self.initSpecPlot(ax1, intensities_list, mass_range, normalization)
+		ln, pk, pkTxt, infoTxt = self.initSpecPlot(ax1, intensities_list, mass_range, normalization, manual_norm_range, local_norm_scan_range)
 		aux, rect = self.initAuxPlot(ax2, times, aux_data, scan_range, markers, aux_plot_type, "black")
 
 		ax3 = None
@@ -321,7 +330,7 @@ class Spectrum:
 		#Writer = writers['ffmpeg']
 		#FFWriter = Writer(fps=15)
 		#writer = animation.AVConvFileWriter()
-		ani.save(path)
+		#ani.save(path)
 		plt.show()
 
 
