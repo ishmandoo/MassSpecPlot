@@ -1,15 +1,16 @@
-from scipy.io import netcdf
-from collections import defaultdict
+import numpy as np
 import math
-import matplotlib.pyplot as plt
+import os
+import csv
+from scipy.io import netcdf
+from scipy.ndimage.filters import gaussian_filter
+from collections import defaultdict
 from copy import copy
 from scipy import signal
+import matplotlib.pyplot as plt
 from matplotlib import animation
-import numpy as np
-import csv
-from bisect import bisect_left
 from matplotlib.patches import Rectangle
-import os
+from bisect import bisect_left
 #plt.rcParams["animation.convert_path"] = u"C:\\Program Files\\ImageMagick-7.0.7-Q16\\magick.exe"
 #plt.rcParams["animation.convert_path"] = u"magick"
 
@@ -170,7 +171,7 @@ class Spectrum:
 
 		return masses, intensities_list
 
-	def makeAuxData(self, scan_range, aux_plot_type):
+	def makeAuxData(self, scan_range, aux_plot_type, aux_smoothing):
 		scan_start, scan_end = scan_range
 
 		if aux_plot_type == AuxPlots.SOURCE_CURRENT:
@@ -193,8 +194,10 @@ class Spectrum:
 
 		else:
 			raise ValueError('Invalid Aux Plot Type')
+
+		smooth_data = gaussian_filter(data, aux_smoothing)
 		times = np.array([scan.t for scan in self.scans[scan_start:scan_end]])
-		return times, data
+		return times, smooth_data
 
 	def findPeaks(self, masses, intensities):
 		# find peaks
@@ -310,7 +313,15 @@ class Spectrum:
 
 		return aux, rect
 
-	def makeAnimation(self, mass_range, scan_range, window, step, out_name = None, normalization=SpecNorm.SCAN, markers = [], aux_plot_type=AuxPlots.SOURCE_CURRENT, aux_plot_type_2=None, manual_norm_range=(0,0), local_norm_scan_range=(0,0)):
+	def makeAnimation(self, mass_range, scan_range, window, step,
+		out_name = None,
+		normalization=SpecNorm.SCAN,
+		markers = [],
+		aux_plot_type=AuxPlots.SOURCE_CURRENT,
+		aux_plot_type_2=None,
+		aux_smoothing = 1,
+		manual_norm_range=(0,0),
+		local_norm_scan_range=(0,0)):
 		# unpack the beginning and end of the mass ranges and scan ranges
 		scan_start, scan_end = scan_range
 		if scan_end == -1:
@@ -326,12 +337,12 @@ class Spectrum:
 		#peaks_indices_list = [self.findPeakIndicies(intensities), for intensities in intensities_list]
 
 		# make numpy arrays with the current for each scan and the time for each scan
-		times, aux_data = self.makeAuxData(scan_range, aux_plot_type)
+		times, aux_data = self.makeAuxData(scan_range, aux_plot_type, aux_smoothing)
 
 		if aux_plot_type == AuxPlots.SOURCE_CURRENT:
 			currents = aux_data
 		else:
-			_, currents = self.makeAuxData(scan_range, AuxPlots.SOURCE_CURRENT)
+			_, currents = self.makeAuxData(scan_range, AuxPlots.SOURCE_CURRENT, aux_smoothing)
 
 		# make the figure, upper and lower plots, and text object pool
 		fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
