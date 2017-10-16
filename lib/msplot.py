@@ -24,7 +24,7 @@ class SpecNorm:
 class AuxPlots:
 	SOURCE_CURRENT = {'x':'current (nA)', 'multiplier': 1000000000.}
 	DETECTOR_CURRENT = {'x':'detector counts (kcps)', 'multiplier': 1.}
-	DETECTOR_SOURCE_RATIO = {'x':'ratio', 'multiplier': 1.}
+	DETECTOR_SOURCE_RATIO = {'x':'ratio (kcps/pA)', 'multiplier': .000000000001}
 	L1_VOLTAGE = {'x':'voltage (V)', 'multiplier': 1.}
 	L2_VOLTAGE = {'x':'voltage (V)', 'multiplier': 1.}
 	PRESSURE = {'x':'pressure (kPa)', 'multiplier': 1.}
