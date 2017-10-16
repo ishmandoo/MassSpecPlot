@@ -208,7 +208,10 @@ class Spectrum:
 		peak_masses, peak_intensities = self.findPeaks(masses, intensities)
 
 		# find max peak height for use in setting axis limits
-		max_intensity = max(peak_intensities)
+		if len(peak_intensities) > 0:
+			max_intensity = max(peak_intensities)
+		else:
+			 max_intensity = max(intensities)
 
 		# set the y limits for the spectrum
 		if normalization == SpecNorm.SCAN:
