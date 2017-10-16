@@ -1,15 +1,17 @@
-from scipy.io import netcdf 
-from collections import defaultdict 
-import math 
-import matplotlib.pyplot as plt 
-from copy import copy 
+from scipy.io import netcdf
+from collections import defaultdict
+import math
+import matplotlib.pyplot as plt
+from copy import copy
 from scipy import signal
 from matplotlib import animation
-import numpy as np 
-import csv  
+import numpy as np
+import csv
 from bisect import bisect_left
 from matplotlib.patches import Rectangle
 import os
+#plt.rcParams["animation.convert_path"] = u"C:\\Program Files\\ImageMagick-7.0.7-Q16\\magick.exe"
+#plt.rcParams["animation.convert_path"] = u"magick"
 
 
 
@@ -28,7 +30,8 @@ class AuxPlots:
 	PRESSURE = {'x':'pressure (kPa)', 'multiplier': 1.}
 
 class Scan:
-	def __init__(self, t, intensity, i, vl1, vl2, p):
+	def __init__(self, n, t, intensity, i, vl1, vl2, p):
+		self.n = n
 		self.masses = defaultdict(long)
 		self.t = t
 		self.i = i
@@ -37,7 +40,7 @@ class Scan:
 		self.p = p
 		self.intensity = intensity
 	def __add__(self, other):
-		new_scan = Scan(self.t, self.i, self.vl1, self.vl2, self.p, self.intensity)
+		new_scan = Scan(self.n, self.t, self.i, self.vl1, self.vl2, self.p, self.intensity)
 		new_scan.masses = self.masses.copy()
 		for mass in other.masses:
 			new_scan.masses[mass] += other.masses[mass]
@@ -82,11 +85,11 @@ class Spectrum:
 		if auxPath == None:
 			raise IOError("Missing aux file")
 
-		print("loading\ncdf -> %s\naux -> %s"%(specPath, auxPath)) 
+		print("loading\ncdf -> %s\naux -> %s"%(specPath, auxPath))
 
 		with open(auxPath,'r') as tsv:
 		    lines = [line.strip().split('\t') for line in tsv]
-		    
+
 		(i, vl1, vl2, p, y0, m0, d0, h0, m0, s0) = lines[0]
 		h0, m0, s0 = float(h0), float(m0), float(s0)
 
@@ -117,7 +120,7 @@ class Spectrum:
 					j = len(times) - 1
 
 				# create a new Scan object for each
-				new_scan = Scan(t, scan_total_intensities[i], current[j], voltagel1[j], voltagel2[j], pressure[j])
+				new_scan = Scan(i, t, scan_total_intensities[i], current[j], voltagel1[j], voltagel2[j], pressure[j])
 
 				# loop over the masses in the scan
 				for point in range(scan_start_indices[i], scan_start_indices[i+1]):
@@ -136,7 +139,7 @@ class Spectrum:
 
 		peak_masses, peak_intensities = self.findPeaks(masses, intensities)
 
-		plt.plot(masses, intensities)		
+		plt.plot(masses, intensities)
 		plt.scatter(peak_masses, peak_intensities)
 		plt.show()
 
@@ -245,7 +248,7 @@ class Spectrum:
 		highlight_rect.set_x(window_start_time)
 		highlight_rect.set_width(window_end_time - window_start_time)
 
-		aux.set_data(times[:window_end_relative],data[:window_end_relative])			
+		aux.set_data(times[:window_end_relative],data[:window_end_relative])
 		info_text.set_text("scans %d - %d\n%.0fs - %.0fs\n%.2f nA" % (window_start, window_end, window_start_time, window_end_time, currents[window_start_relative]))
 
 	def initSpecPlot(self, ax, intensities_list, mass_range, normalization, manual_norm_range, local_norm_scan_range):
@@ -307,8 +310,11 @@ class Spectrum:
 	def makeAnimation(self, mass_range, scan_range, window, step, out_name = None, normalization=SpecNorm.SCAN, markers = [], aux_plot_type=AuxPlots.SOURCE_CURRENT, aux_plot_type_2=None, manual_norm_range=(0,0), local_norm_scan_range=(0,0)):
 		# unpack the beginning and end of the mass ranges and scan ranges
 		scan_start, scan_end = scan_range
+		if scan_end == -1:
+			scan_end = self.scans[-1].n
 
-		ranges = self.makeScanRanges(scan_range, window, step)
+		ranges = self.makeScanRanges((scan_start, scan_end), window, step)
+		print "making animation with scan ranges %s"%str(ranges)
 
 
 		# generate the list of intensities for each mass window
@@ -317,7 +323,7 @@ class Spectrum:
 		#peaks_indices_list = [self.findPeakIndicies(intensities), for intensities in intensities_list]
 
 		# make numpy arrays with the current for each scan and the time for each scan
-		times, aux_data = self.makeAuxData(scan_range, aux_plot_type)		
+		times, aux_data = self.makeAuxData(scan_range, aux_plot_type)
 
 		if aux_plot_type == AuxPlots.SOURCE_CURRENT:
 			currents = aux_data
@@ -336,10 +342,10 @@ class Spectrum:
 		aux_2 = None
 		if aux_plot_type_2:
 			ax3 = ax2.twinx()
-			_, aux_data_2 = self.makeAuxData(scan_range, aux_plot_type_2)	
+			_, aux_data_2 = self.makeAuxData(scan_range, aux_plot_type_2)
 			aux_2, rect_2 = self.initAuxPlot(ax3, times, aux_data_2, scan_range, markers, aux_plot_type_2, 'blue')
 			rect_2.set_alpha(0)
-		
+
 		# a function to update the plot for each frame
 		def update(frame):
 			self.updateSpecPlot(ax1, ln, pk, masses, intensities_list[frame], pkTxt, normalization)
@@ -349,7 +355,7 @@ class Spectrum:
 			return [ln, pk, aux, rect] + pkTxt
 
 
-		
+
 
 		ani = animation.FuncAnimation(fig, update, frames=range(len(ranges)), blit=False)
 		#Writer = writers['ffmpeg']
