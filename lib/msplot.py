@@ -5,7 +5,6 @@ import csv
 from scipy.io import netcdf
 from scipy.ndimage.filters import gaussian_filter
 from collections import defaultdict
-from copy import copy
 from scipy import signal
 import matplotlib.pyplot as plt
 from matplotlib import animation
@@ -100,15 +99,15 @@ class Spectrum:
 		voltagel2 = [float(vl2) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
 		pressure =[float(p) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
 
-		with netcdf.netcdf_file(specPath, 'r') as f:
-			v = copy(f.variables)
+		with netcdf.netcdf_file(specPath, 'r', mmap=False) as f:
+			v = f.variables
 
-			scan_start_indices = copy(v['scan_index'])
-			scan_start_times = copy(v['scan_acquisition_time'])
-			scan_total_intensities = copy(v['total_intensity'])
+			scan_start_indices = v['scan_index']
+			scan_start_times = v['scan_acquisition_time']
+			scan_total_intensities = v['total_intensity']
 
-			masses = copy(v['mass_values'])
-			intensities = copy(v['intensity_values'])
+			masses = v['mass_values']
+			intensities = v['intensity_values']
 
 			# loop over the scans
 			for i in range(scan_start_indices.shape[0]-1):
