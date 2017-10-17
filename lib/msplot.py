@@ -32,7 +32,7 @@ class AuxPlots:
 class Scan:
 	def __init__(self, n, t, intensity, i, vl1, vl2, p):
 		self.n = n
-		self.masses = defaultdict(long)
+		self.masses = defaultdict(np.uint64)
 		self.t = t
 		self.i = i
 		self.vl1 = vl1
@@ -327,7 +327,7 @@ class Spectrum:
 			scan_end = self.scans[-1].n
 
 		ranges = self.makeScanRanges((scan_start, scan_end), window, step)
-		print "making animation with scan ranges %s"%str(ranges)
+		#print("making animation with scan ranges %s"%str(ranges))
 
 
 		# generate the list of intensities for each mass window
