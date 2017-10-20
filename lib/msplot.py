@@ -358,7 +358,7 @@ class Spectrum:
 		aux_2 = None
 		if aux_plot_type_2:
 			ax3 = ax2.twinx()
-			_, aux_data_2 = self.makeAuxData(scan_range, aux_plot_type_2)
+			_, aux_data_2 = self.makeAuxData(scan_range, aux_plot_type_2, aux_smoothing)
 			aux_2, rect_2 = self.initAuxPlot(ax3, times, aux_data_2, scan_range, markers, aux_plot_type_2, 'blue')
 			rect_2.set_alpha(0)
 
