@@ -288,14 +288,21 @@ class Spectrum:
 
 		return ln, pk, pkTxt, infoTxt
 
-	def initAuxPlot(self, ax, times, aux_data, scan_range, markers, aux_plot_type, color):
+	def initAuxPlot(self, ax, times, aux_data, manual_range, scan_range, markers, aux_plot_type, color):
 		scan_start, scan_end = scan_range
+		manual_start, manual_end = manual_range
 		aux, = ax.plot([], [], color=color, animated=False, lw=1)
 		ax.tick_params(axis='y', colors=color)
 		ax.xaxis.label.set_color(color)
 
-		y_lim_top = 1.1 * np.percentile(aux_data, 99.5)
-		y_lim_bot = np.percentile(aux_data, 0.5) - 0.05 * y_lim_top
+		y_lim_top = manual_end
+		y_lim_bot = manual_start
+
+		if y_lim_top is None:
+			y_lim_top = 1.1 * np.percentile(aux_data, 99.5)
+
+		if y_lim_bot is None:
+			y_lim_bot = np.percentile(aux_data, 0.5) - 0.05 * y_lim_top
 
 		# make the highlight rectangle showing the scan window
 		rect = Rectangle((0,y_lim_bot),0, 2*y_lim_top, color=(0,0,0), alpha=0.2)
@@ -322,7 +329,11 @@ class Spectrum:
 		aux_plot_type=AuxPlots.SOURCE_CURRENT,
 		aux_plot_type_2=None,
 		aux_smoothing = 1,
+		aux_smoothing_2 = 1,
+		aux_range = (None,None),
+		aux_range_2 = (None,None),
 		manual_norm_range=(0,0),
+		show_plot = True,
 		local_norm_scan_range=(0,0)):
 		# unpack the beginning and end of the mass ranges and scan ranges
 		scan_start, scan_end = scan_range
@@ -352,14 +363,14 @@ class Spectrum:
 
 
 		ln, pk, pkTxt, infoTxt = self.initSpecPlot(ax1, intensities_list, mass_range, normalization, manual_norm_range, local_norm_scan_range)
-		aux, rect = self.initAuxPlot(ax2, times, aux_data, scan_range, markers, aux_plot_type, "black")
+		aux, rect = self.initAuxPlot(ax2, times, aux_data, aux_range, scan_range, markers, aux_plot_type, "black")
 
 		ax3 = None
 		aux_2 = None
 		if aux_plot_type_2:
 			ax3 = ax2.twinx()
-			_, aux_data_2 = self.makeAuxData(scan_range, aux_plot_type_2, aux_smoothing)
-			aux_2, rect_2 = self.initAuxPlot(ax3, times, aux_data_2, scan_range, markers, aux_plot_type_2, 'blue')
+			_, aux_data_2 = self.makeAuxData(scan_range, aux_plot_type_2, aux_smoothing_2)
+			aux_2, rect_2 = self.initAuxPlot(ax3, times, aux_data_2, aux_range_2, scan_range, markers, aux_plot_type_2, 'blue')
 			rect_2.set_alpha(0)
 
 		# a function to update the plot for each frame
@@ -379,7 +390,13 @@ class Spectrum:
 		#writer = animation.AVConvFileWriter()
 		if not out_name == None:
 			ani.save(os.path.join(self.path, out_name))
-		plt.show()
+
+
+		# make an alert noise
+		print('\a')
+
+		if show_plot:
+			plt.show()
 
 
 def toSeconds(hms, hms0):
