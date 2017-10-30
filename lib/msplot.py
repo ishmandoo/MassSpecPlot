@@ -61,6 +61,8 @@ class Spectrum:
 	def __init__(self, scans = []):
 		self.scans = scans
 		self.path = None
+		self.mass_start = None
+		self.mass_end = None
 
 	def load(self, path, specPath=None, auxPath=None):
 		lines = None
@@ -90,15 +92,6 @@ class Spectrum:
 		with open(auxPath,'r') as tsv:
 		    lines = [line.strip().split('\t') for line in tsv]
 
-		(i, vl1, vl2, p, y0, m0, d0, h0, m0, s0) = lines[0]
-		h0, m0, s0 = float(h0), float(m0), float(s0)
-
-		times = [toSeconds((h,m,s),(h0,m0,s0)) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
-		current = [float(i) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
-		voltagel1 = [float(vl1) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
-		voltagel2 = [float(vl2) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
-		pressure =[float(p) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
-
 		with netcdf.netcdf_file(specPath, 'r', mmap=False) as f:
 			v = f.variables
 
@@ -106,8 +99,25 @@ class Spectrum:
 			scan_start_times = v['scan_acquisition_time']
 			scan_total_intensities = v['total_intensity']
 
+			self.mass_start = int(v['mass_range_min'][0])
+			self.mass_end = int(v['mass_range_max'][0])
+
+			print(self.mass_start,self.mass_end)
+
 			masses = v['mass_values']
 			intensities = v['intensity_values']
+
+			#(i, vl1, vl2, p, y0, m0, d0, h0, m0, s0) = lines[0]
+			#h0, m0, s0 = float(h0), float(m0), float(s0)
+
+			time_stamp = f.experiment_date_time_stamp
+			h0, m0, s0 = time_stamp[8:10], time_stamp[10:12], 0
+
+			times = [toSeconds((h,m,s),(h0,m0,s0)) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
+			current = [float(i) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
+			voltagel1 = [float(vl1) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
+			voltagel2 = [float(vl2) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
+			pressure =[float(p) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
 
 			# loop over the scans
 			for i in range(scan_start_indices.shape[0]-1):
@@ -157,9 +167,8 @@ class Spectrum:
 		return [(i, i+window) for i in range(scan_start, scan_end-window, step)]
 
 	def makeSpectra(self, mass_range, scan_ranges):
-		mass_start, mass_end = mass_range
-
 		# compile the overall spectrum for each mass window
+		mass_start, mass_end = mass_range
 		spec_list = [sum(self.scans[window_start:window_end]).masses for window_start, window_end in scan_ranges]
 
 		# generate the list of masses
@@ -322,7 +331,11 @@ class Spectrum:
 
 		return aux, rect
 
-	def makeAnimation(self, mass_range, scan_range, window, step,
+	def makeAnimation(self,  
+		window = 500, 
+		step = 500,
+		mass_range = (None, None),
+		scan_range = (None, None),
 		out_name = None,
 		normalization=SpecNorm.SCAN,
 		markers = [],
@@ -337,10 +350,24 @@ class Spectrum:
 		local_norm_scan_range=(0,0)):
 		# unpack the beginning and end of the mass ranges and scan ranges
 		scan_start, scan_end = scan_range
-		if scan_end == -1:
+		if scan_start is None:
+			scan_start = 0
+		if scan_end is None:
 			scan_end = self.scans[-1].n
 
-		ranges = self.makeScanRanges((scan_start, scan_end), window, step)
+		scan_range = (scan_start, scan_end)
+
+
+		mass_start, mass_end = mass_range
+		if mass_start is None:
+			mass_start = self.mass_start
+		if mass_end is None:
+			mass_end = self.mass_end
+
+		mass_range = (mass_start, mass_end)
+
+
+		ranges = self.makeScanRanges(scan_range, window, step)
 		#print("making animation with scan ranges %s"%str(ranges))
 
 
