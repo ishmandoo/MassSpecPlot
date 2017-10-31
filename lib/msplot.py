@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib.patches import Rectangle
 from bisect import bisect_left
+import glob
+from warnings import warn
 #plt.rcParams["animation.convert_path"] = u"C:\\Program Files\\ImageMagick-7.0.7-Q16\\magick.exe"
 #plt.rcParams["animation.convert_path"] = u"magick"
 
@@ -64,30 +66,28 @@ class Spectrum:
 		self.mass_start = None
 		self.mass_end = None
 
-	def load(self, path, specPath=None, auxPath=None):
+	def load(self, path, specPath=None, auxPath=None, logPath=None):
 		lines = None
 		self.path = path
-		if specPath == None:
-			options = ['spec.cd','spec.cdf']
-			for option in options:
-				optionPath = os.path.join(path, "mass spec", option)
-				if os.path.isfile(optionPath):
-					specPath = optionPath
+		if specPath is None:
+			specPath = glob.glob(os.path.join(path,"*.cd*"))[0]
 
-		if auxPath == None:
-			options = ['ivpt.tsv']
-			for option in options:
-				optionPath = os.path.join(path, "ivpt", option)
-				if os.path.isfile(optionPath):
-					auxPath = optionPath
+		if auxPath is None:
+			auxPath = glob.glob(os.path.join(path,"*.tsv"))[0]
 
-		if specPath == None:
+		if logPath is None:
+			logPath = glob.glob(os.path.join(path,"*.log"))[0]
+
+		if specPath is None:
 			raise IOError("Missing spectrum file")
 
-		if auxPath == None:
+		if auxPath is None:
 			raise IOError("Missing aux file")
 
-		print("loading\ncdf -> %s\naux -> %s"%(specPath, auxPath))
+		if logPath is None:
+			warn("Missing aux file")
+
+		print("loading\ncdf -> %s\naux -> %s\nlog -> %s"%(specPath, auxPath, logPath))
 
 		with open(auxPath,'r') as tsv:
 		    lines = [line.strip().split('\t') for line in tsv]
