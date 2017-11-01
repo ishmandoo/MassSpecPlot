@@ -28,8 +28,8 @@ class AuxPlots:
 	SOURCE_CURRENT = {'x':'current (nA)', 'multiplier': 1000000000.}
 	DETECTOR_CURRENT = {'x':'detector counts (kcps)', 'multiplier': 1.}
 	DETECTOR_SOURCE_RATIO = {'x':'ratio (kcps/nA)', 'multiplier': .000000001}
-	L1_VOLTAGE = {'x':'voltage (V)', 'multiplier': 1.}
-	L2_VOLTAGE = {'x':'voltage (V)', 'multiplier': 1.}
+	L1_VOLTAGE = {'x':'L1 voltage (V)', 'multiplier': 1.}
+	L2_VOLTAGE = {'x':'L2 voltage (V)', 'multiplier': 1.}
 	PRESSURE = {'x':'pressure (kPa)', 'multiplier': 1.}
 
 class Scan:
@@ -117,7 +117,6 @@ class Spectrum:
 			self.mass_start = int(v['mass_range_min'][0])
 			self.mass_end = int(v['mass_range_max'][0])
 
-			print(self.mass_start,self.mass_end)
 
 			masses = v['mass_values']
 			intensities = v['intensity_values']
@@ -328,14 +327,19 @@ class Spectrum:
 		if y_lim_bot is None:
 			y_lim_bot = np.percentile(aux_data, 0.5) - 0.05 * y_lim_top
 
+		print(y_lim_top,y_lim_bot)
+
 		# make the highlight rectangle showing the scan window
 		rect = Rectangle((0,y_lim_bot),0, 2*y_lim_top, color=(0,0,0), alpha=0.2)
 		ax.add_artist(rect)
 
 		for marker in markers:
-			time = times[marker.scan - scan_start]
-			ax.plot([time, time], [y_lim_bot, y_lim_top], color = "red", dashes=[5,5], lw=1)
-			ax.text(time, y_lim_top, marker.title, verticalalignment='bottom', horizontalalignment='left', color='red', rotation=45)
+			try:
+				time = times[marker.scan - scan_start]
+				ax.plot([time, time], [y_lim_bot, y_lim_top], color = "red", dashes=[5,5], lw=1)
+				ax.text(time, y_lim_top, marker.title, verticalalignment='bottom', horizontalalignment='left', color='red', rotation=45)
+			except IndexError:
+				warn("Marker out of plot range")
 
 		# set axis limits
 		ax.set_xlim(times[0] - 0.05 * times[-1], 1.05 * times[-1])
