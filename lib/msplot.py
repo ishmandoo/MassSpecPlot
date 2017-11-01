@@ -12,6 +12,7 @@ from matplotlib.patches import Rectangle
 from bisect import bisect_left
 import glob
 from warnings import warn
+import re
 #plt.rcParams["animation.convert_path"] = u"C:\\Program Files\\ImageMagick-7.0.7-Q16\\magick.exe"
 #plt.rcParams["animation.convert_path"] = u"magick"
 
@@ -65,6 +66,7 @@ class Spectrum:
 		self.path = None
 		self.mass_start = None
 		self.mass_end = None
+		self.s0 = 0
 
 	def load(self, path, specPath=None, auxPath=None, logPath=None):
 		lines = None
@@ -89,6 +91,13 @@ class Spectrum:
 
 		print("loading\ncdf -> %s\naux -> %s\nlog -> %s"%(specPath, auxPath, logPath))
 
+
+
+		with open(logPath, 'r') as f:
+			log = f.read()
+			pattern = re.compile("[0-1][0-9]:[0-5][0-9]:[0-5][0-9]")
+			self.s0 = pattern.search(log).group(0).split(":")[-1]
+
 		with open(auxPath,'r') as tsv:
 		    lines = [line.strip().split('\t') for line in tsv]
 
@@ -111,7 +120,7 @@ class Spectrum:
 			#h0, m0, s0 = float(h0), float(m0), float(s0)
 
 			time_stamp = f.experiment_date_time_stamp
-			h0, m0, s0 = time_stamp[8:10], time_stamp[10:12], 0
+			h0, m0, s0 = time_stamp[8:10], time_stamp[10:12], self.s0
 
 			times = [toSeconds((h,m,s),(h0,m0,s0)) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
 			current = [float(i) for (i, vl1, vl2, p, y, m, d, h, m, s) in lines]
