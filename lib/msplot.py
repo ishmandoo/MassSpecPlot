@@ -13,6 +13,7 @@ from bisect import bisect_left
 import glob
 from warnings import warn
 import re
+import time
 #plt.rcParams["animation.convert_path"] = u"C:\\Program Files\\ImageMagick-7.0.7-Q16\\magick.exe"
 #plt.rcParams["animation.convert_path"] = u"magick"
 
@@ -28,8 +29,8 @@ class AuxPlots:
 	SOURCE_CURRENT = {'x':'current (nA)', 'multiplier': 1000000000.}
 	DETECTOR_CURRENT = {'x':'detector counts (kcps)', 'multiplier': 1.}
 	DETECTOR_SOURCE_RATIO = {'x':'ratio (kcps/nA)', 'multiplier': .000000001}
-	L1_VOLTAGE = {'x':'L1 voltage (V)', 'multiplier': 1.}
-	L2_VOLTAGE = {'x':'L2 voltage (V)', 'multiplier': 1.}
+	L1_VOLTAGE = {'x':'L1 voltage (V)', 'multiplier': 1000.}
+	L2_VOLTAGE = {'x':'L2 voltage (V)', 'multiplier': 1000.}
 	PRESSURE = {'x':'pressure (kPa)', 'multiplier': 1.}
 
 class Scan:
@@ -262,7 +263,7 @@ class Spectrum:
 		spec.set_data(masses, intensities)
 		peak.set_data(peak_masses, peak_intensities)
 
-	def updateAuxPlot(self, ax, aux, info_text, highlight_rect, times, data, currents, scan_range, scan_start):
+	def updateAuxPlot(self, ax, aux, info_text, highlight_rect, times, data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, scan_range, scan_start):
 		# unpack the frame window start and end
 		window_start, window_end = scan_range
 
@@ -280,7 +281,17 @@ class Spectrum:
 		highlight_rect.set_width(window_end_time - window_start_time)
 
 		aux.set_data(times[:window_end_relative],data[:window_end_relative])
-		info_text.set_text("scans %d - %d\n%.0fs - %.0fs\n%.2f nA" % (window_start, window_end, window_start_time, window_end_time, currents[window_start_relative]))
+		info_text.set_text("scans %d - %d\n%.0fs - %.0fs\nsource %.2f nA\ndetector %.0f\nratio %.2f\nL1 %.2f V\nL2 %.2f V" % (
+			window_start, 
+			window_end, 
+			window_start_time, 
+			window_end_time, 
+			source_currents[window_start_relative], 
+			detector_currents[window_start_relative], 
+			ratios[window_start_relative], 
+			L1_voltages[window_start_relative], 
+			L2_voltages[window_start_relative]
+			))
 
 	def initSpecPlot(self, ax, intensities_list, mass_range, normalization, manual_norm_range, local_norm_scan_range):
 		mass_start, mass_end = mass_range
@@ -326,8 +337,6 @@ class Spectrum:
 
 		if y_lim_bot is None:
 			y_lim_bot = np.percentile(aux_data, 0.5) - 0.05 * y_lim_top
-
-		print(y_lim_top,y_lim_bot)
 
 		# make the highlight rectangle showing the scan window
 		rect = Rectangle((0,y_lim_bot),0, 2*y_lim_top, color=(0,0,0), alpha=0.2)
@@ -396,12 +405,15 @@ class Spectrum:
 		#peaks_indices_list = [self.findPeakIndicies(intensities), for intensities in intensities_list]
 
 		# make numpy arrays with the current for each scan and the time for each scan
+
 		times, aux_data = self.makeAuxData(scan_range, aux_plot_type, aux_smoothing)
 
-		if aux_plot_type == AuxPlots.SOURCE_CURRENT:
-			currents = aux_data
-		else:
-			_, currents = self.makeAuxData(scan_range, AuxPlots.SOURCE_CURRENT, aux_smoothing)
+
+		_, source_currents = self.makeAuxData(scan_range, AuxPlots.SOURCE_CURRENT, aux_smoothing)
+		_, detector_currents = self.makeAuxData(scan_range, AuxPlots.DETECTOR_SOURCE_RATIO, aux_smoothing)
+		_, ratios = self.makeAuxData(scan_range, AuxPlots.DETECTOR_CURRENT, aux_smoothing)
+		_, L1_voltages = self.makeAuxData(scan_range, AuxPlots.L1_VOLTAGE, aux_smoothing)
+		_, L2_voltages = self.makeAuxData(scan_range, AuxPlots.L2_VOLTAGE, aux_smoothing)
 
 		# make the figure, upper and lower plots, and text object pool
 		fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
@@ -422,9 +434,9 @@ class Spectrum:
 		# a function to update the plot for each frame
 		def update(frame):
 			self.updateSpecPlot(ax1, ln, pk, masses, intensities_list[frame], pkTxt, normalization)
-			self.updateAuxPlot(ax2, aux, infoTxt, rect, times, aux_data, currents, ranges[frame], scan_start)
+			self.updateAuxPlot(ax2, aux, infoTxt, rect, times, aux_data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
 			if aux_plot_type_2:
-				self.updateAuxPlot(ax3, aux_2, infoTxt, rect, times, aux_data_2, currents, ranges[frame], scan_start)
+				self.updateAuxPlot(ax3, aux_2, infoTxt, rect, times, aux_data_2, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
 			return [ln, pk, aux, rect] + pkTxt
 
 
