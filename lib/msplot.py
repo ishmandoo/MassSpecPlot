@@ -72,13 +72,19 @@ class Spectrum:
 		lines = None
 		self.path = path
 		if specPath is None:
-			specPath = glob.glob(os.path.join(path,"*.cd*"))[0]
+			files = glob.glob(os.path.join(path,"*.cd*"))
+			if len(files) > 0:
+				specPath = files[0]
 
 		if auxPath is None:
-			auxPath = glob.glob(os.path.join(path,"*.tsv"))[0]
+			files = glob.glob(os.path.join(path,"*.tsv"))
+			if len(files) > 0:
+				auxPath = files[0]
 
 		if logPath is None:
-			logPath = glob.glob(os.path.join(path,"*.log"))[0]
+			files = glob.glob(os.path.join(path,"*.log"))
+			if len(files) > 0:
+				logPath = files[0]
 
 		if specPath is None:
 			raise IOError("Missing spectrum file")
@@ -92,11 +98,11 @@ class Spectrum:
 		print("loading\ncdf -> %s\naux -> %s\nlog -> %s"%(specPath, auxPath, logPath))
 
 
-
-		with open(logPath, 'r') as f:
-			log = f.read()
-			pattern = re.compile("[0-1][0-9]:[0-5][0-9]:[0-5][0-9]")
-			self.s0 = pattern.search(log).group(0).split(":")[-1]
+		if not logPath is None:
+			with open(logPath, 'r') as f:
+				log = f.read()
+				pattern = re.compile("[0-1][0-9]:[0-5][0-9]:[0-5][0-9]")
+				self.s0 = pattern.search(log).group(0).split(":")[-1]
 
 		with open(auxPath,'r') as tsv:
 		    lines = [line.strip().split('\t') for line in tsv]
