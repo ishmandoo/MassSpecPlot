@@ -14,7 +14,6 @@ import glob
 from warnings import warn
 import re
 import time
-from multiprocessing import Pool
 #plt.rcParams["animation.convert_path"] = u"C:\\Program Files\\ImageMagick-7.0.7-Q16\\magick.exe"
 #plt.rcParams["animation.convert_path"] = u"magick"
 
@@ -180,14 +179,9 @@ class Spectrum:
 
 	def makeSpectra(self, mass_range, scan_ranges):
 		# compile the overall spectrum for each mass window
-		print("pooling")
-		pool = Pool()
 
 		mass_start, mass_end = mass_range
-		#spec_list = [self.makeSpectrum(window_start, window_end) for window_start, window_end in scan_ranges]
-		spec_list = pool.map(self.makeSpectrum, scan_ranges)
-
-		pool.close()
+		spec_list = [self.makeSpectrum(window_start, window_end) for window_start, window_end in scan_ranges]
 
 		# generate the list of masses
 		masses = range(mass_start, mass_end)
