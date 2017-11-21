@@ -14,6 +14,7 @@ import glob
 from warnings import warn
 import re
 import time
+from multiprocessing import Pool
 #plt.rcParams["animation.convert_path"] = u"C:\\Program Files\\ImageMagick-7.0.7-Q16\\magick.exe"
 #plt.rcParams["animation.convert_path"] = u"magick"
 
@@ -34,7 +35,7 @@ class AuxPlots:
 	PRESSURE = {'x':'pressure (kPa)', 'multiplier': 1.}
 
 class Scan:
-	def __init__(self, n, t, intensity, i, vl1, vl2, p):
+	def __init__(self, n, t, intensity, i, vl1, vl2, p, intensity_cutoff=None):
 		self.n = n
 		self.masses = defaultdict(np.uint64)
 		self.t = t
@@ -43,6 +44,8 @@ class Scan:
 		self.vl2 = vl2
 		self.p = p
 		self.intensity = intensity
+		if not intensity_cutoff is None:
+			sum([masses[mass] for mass in masses if mass > intensity_cutoff])
 	def __add__(self, other):
 		new_scan = Scan(self.n, self.t, self.i, self.vl1, self.vl2, self.p, self.intensity)
 		new_scan.masses = self.masses.copy()
@@ -157,16 +160,6 @@ class Spectrum:
 
 				self.scans.append(new_scan)
 
-	def plot(self):
-		spec = sum(self.scans).masses
-		masses = spec.keys()
-		intensities = spec.values()
-
-		peak_masses, peak_intensities = self.findPeaks(masses, intensities)
-
-		plt.plot(masses, intensities)
-		plt.scatter(peak_masses, peak_intensities)
-		plt.show()
 
 	def currentPlot(self, scan_range):
 
@@ -181,10 +174,20 @@ class Spectrum:
 
 		return [(i, i+window) for i in range(scan_start, scan_end-window, step)]
 
+	def makeSpectrum(self, window_range):
+		window_start, window_end = window_range
+		return sum(self.scans[window_start:window_end]).masses
+
 	def makeSpectra(self, mass_range, scan_ranges):
 		# compile the overall spectrum for each mass window
+		print("pooling")
+		pool = Pool()
+
 		mass_start, mass_end = mass_range
-		spec_list = [sum(self.scans[window_start:window_end]).masses for window_start, window_end in scan_ranges]
+		#spec_list = [self.makeSpectrum(window_start, window_end) for window_start, window_end in scan_ranges]
+		spec_list = pool.map(self.makeSpectrum, scan_ranges)
+
+		pool.close()
 
 		# generate the list of masses
 		masses = range(mass_start, mass_end)
@@ -344,9 +347,10 @@ class Spectrum:
 
 		for marker in markers:
 			try:
-				time = times[marker.scan - scan_start]
-				ax.plot([time, time], [y_lim_bot, y_lim_top], color = "red", dashes=[5,5], lw=1)
-				ax.text(time, y_lim_top, marker.title, verticalalignment='bottom', horizontalalignment='left', color='red', rotation=45)
+				if scan_start < marker.scan < scan_end:
+					time = times[marker.scan - scan_start]
+					ax.plot([time, time], [y_lim_bot, y_lim_top], color = "red", dashes=[5,5], lw=1)
+					ax.text(time, y_lim_top, marker.title, verticalalignment='bottom', horizontalalignment='left', color='red', rotation=45)
 			except IndexError:
 				warn("Marker out of plot range")
 
@@ -400,7 +404,9 @@ class Spectrum:
 
 
 		# generate the list of intensities for each mass window
+		t = time.time()
 		masses, intensities_list = self.makeSpectra(mass_range, ranges)
+		print(time.time()-t)
 
 		#peaks_indices_list = [self.findPeakIndicies(intensities), for intensities in intensities_list]
 
@@ -455,6 +461,42 @@ class Spectrum:
 
 		if show_plot:
 			plt.show()
+
+
+	def makeAuxPlot(self,
+		markers = [],
+		aux_plot_type=AuxPlots.SOURCE_CURRENT,
+		aux_plot_type_2=None,
+		aux_smoothing = 1,
+		aux_smoothing_2 = 1,
+		aux_range = (None,None),
+		aux_range_2 = (None,None),
+		out_name = None
+		):
+		scan_start, scan_end = scan_range
+		if scan_start is None:
+			scan_start = 0
+		if scan_end is None:
+			scan_end = self.scans[-1].n
+
+		scan_range = (scan_start, scan_end)
+
+		fig, ax = plt.subplots()		
+
+		aux, rect = self.initAuxPlot(ax, times, aux_data, aux_range, scan_range, markers, aux_plot_type, "black")
+
+		ax2 = None
+		aux_2 = None
+		if aux_plot_type_2:
+			ax2 = ax.twinx()
+			_, aux_data_2 = self.makeAuxData(scan_range, aux_plot_type_2, aux_smoothing_2)
+			aux_2, rect_2 = self.initAuxPlot(ax2, times, aux_data_2, aux_range_2, scan_range, markers, aux_plot_type_2, 'blue')
+
+
+		self.updateAuxPlot(ax, aux, infoTxt, rect, times, aux_data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
+		if aux_plot_type_2:
+			self.updateAuxPlot(ax2, aux_2, infoTxt, rect, times, aux_data_2, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
+
 
 
 def toSeconds(hms, hms0):

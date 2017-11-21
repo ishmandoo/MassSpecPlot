@@ -1,29 +1,30 @@
 from lib.msplot import *
 import easygui
 
-path = easygui.diropenbox()
+if __name__ == '__main__':
+	path = easygui.diropenbox()
 
-s = Spectrum()
+	s = Spectrum()
 
-s.load(path)
-#s.load("C:\\Users\\ishma\\Dropbox (SteinLab)\\spectra\\(ID     186nm) 2016-07-26-tip15")
-#s.load("../(ID     186nm) 2016-07-26-tip15/")
+	s.load(path)
+	#s.load("C:\\Users\\ishma\\Dropbox (SteinLab)\\spectra\\(ID     186nm) 2016-07-26-tip15")
+	#s.load("../(ID     186nm) 2016-07-26-tip15/")
 
-s.makeAnimation(
-	window = 500,
-	step = 500,
-	scan_range = (None, None),
-	mass_range = (None, None),
-	out_name = "test.mp4",
-	normalization=SpecNorm.SCAN,
-	markers=[Marker("10 mM", 11000)],
-	aux_plot_type=AuxPlots.L1_VOLTAGE,
-	aux_plot_type_2=AuxPlots.L2_VOLTAGE,
-	aux_smoothing=10,
-	aux_smoothing_2=10,
-	aux_range=(None,None),
-	aux_range_2=(None,None)
-	)
+	s.makeAnimation(
+		window = 500,
+		step = 50,
+		scan_range = (None, None),
+		mass_range = (None, None),
+		out_name = "test.mp4",
+		normalization=SpecNorm.SCAN,
+		markers=[Marker("10 mM", 11000)],
+		aux_plot_type=AuxPlots.L1_VOLTAGE,
+		aux_plot_type_2=AuxPlots.L2_VOLTAGE,
+		aux_smoothing=10,
+		aux_smoothing_2=10,
+		aux_range=(None,None),
+		aux_range_2=(None,None)
+		)
 
 
 '''
