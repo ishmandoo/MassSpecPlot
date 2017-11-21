@@ -181,7 +181,7 @@ class Spectrum:
 		# compile the overall spectrum for each mass window
 
 		mass_start, mass_end = mass_range
-		spec_list = [self.makeSpectrum(window_start, window_end) for window_start, window_end in scan_ranges]
+		spec_list = [self.makeSpectrum(scan_range) for scan_range in scan_ranges]
 
 		# generate the list of masses
 		masses = range(mass_start, mass_end)
