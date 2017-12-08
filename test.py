@@ -10,4 +10,4 @@ if __name__ == '__main__':
 	#s.load("C:\\Users\\ishma\\Dropbox (SteinLab)\\spectra\\(ID     186nm) 2016-07-26-tip15")
 	#s.load("../(ID     186nm) 2016-07-26-tip15/")
 
-	s.plotSpectrum(label_peaks=False)
+	s.plotSpectrum(out_name="test.png",label_peaks=False)

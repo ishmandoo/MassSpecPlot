@@ -182,7 +182,7 @@ class Spectrum:
 
 
 
-	def plotSpectrum(self, window_range=(None,None), mass_range=(None,None), label_peaks=True):
+	def plotSpectrum(self, out_name=None, window_range=(None,None), mass_range=(None,None), label_peaks=True):
 
 		window_start, window_end = window_range
 		if window_start is None:
@@ -206,11 +206,14 @@ class Spectrum:
 
 		normalization = SpecNorm.SCAN
 
-		fig, (ax1) = plt.subplots(1, 1, figsize=(12, 10))
-		plt.tight_layout(pad=2, w_pad=1.8, h_pad=5, rect=[0.05, 0, 0.85, 1])
+		fig, (ax1) = plt.subplots(1, 1, figsize=(10, 5))
+		plt.tight_layout(pad=2, w_pad=1.8, h_pad=5)
 		
 		ln, pk, pkTxt, infoTxt = self.initSpecPlot(ax1, [intensities], mass_range, normalization, None, None)
 		self.updateSpecPlot(ax1, ln, pk, masses, intensities, pkTxt, label_peaks, normalization)
+
+		if not out_name == None:
+			plt.savefig(os.path.join(self.path, out_name))
 
 		plt.show()
 
