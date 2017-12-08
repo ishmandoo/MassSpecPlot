@@ -160,6 +160,8 @@ class Spectrum:
 				self.scans.append(new_scan)
 
 
+
+
 	def currentPlot(self, scan_range):
 
 		scan_start, scan_end = scan_range
@@ -167,6 +169,7 @@ class Spectrum:
 		t = [scan.t for scan in self.scans[scan_start:scan_end]]
 		plt.plot(t, i)
 		plt.show()
+
 
 	def makeScanRanges(self, scan_range, window, step):
 		scan_start, scan_end = scan_range
@@ -176,6 +179,40 @@ class Spectrum:
 	def makeSpectrum(self, window_range):
 		window_start, window_end = window_range
 		return sum(self.scans[window_start:window_end]).masses
+
+
+
+	def plotSpectrum(self, window_range=(None,None), mass_range=(None,None), label_peaks=True):
+
+		window_start, window_end = window_range
+		if window_start is None:
+			window_start = 0
+		if window_end is None:
+			window_end = self.scans[-1].n
+
+		window_range = (window_start, window_end)
+
+		mass_start, mass_end = mass_range
+		if mass_start is None:
+			mass_start = self.mass_start
+		if mass_end is None:
+			mass_end = self.mass_end
+
+		mass_range = (mass_start, mass_end)
+		
+		spec = self.makeSpectrum(window_range)
+		masses = range(mass_start, mass_end)
+		intensities = [spec[m] for m in masses] 
+
+		normalization = SpecNorm.SCAN
+
+		fig, (ax1) = plt.subplots(1, 1, figsize=(12, 10))
+		plt.tight_layout(pad=2, w_pad=1.8, h_pad=5, rect=[0.05, 0, 0.85, 1])
+		
+		ln, pk, pkTxt, infoTxt = self.initSpecPlot(ax1, [intensities], mass_range, normalization, None, None)
+		self.updateSpecPlot(ax1, ln, pk, masses, intensities, pkTxt, label_peaks, normalization)
+
+		plt.show()
 
 	def makeSpectra(self, mass_range, scan_ranges):
 		# compile the overall spectrum for each mass window
@@ -227,7 +264,7 @@ class Spectrum:
 		peak_intensities = [intensities[i] for i in peak_indices]
 		return peak_masses, peak_intensities
 
-	def updateSpecPlot(self, ax, spec, peak, masses, intensities, peak_text_pool, normalization):
+	def updateSpecPlot(self, ax, spec, peak, masses, intensities, peak_text_pool, label_peaks, normalization):
 		peak_masses, peak_intensities = self.findPeaks(masses, intensities)
 
 		# find max peak height for use in setting axis limits
@@ -245,20 +282,22 @@ class Spectrum:
 
 		# loop over the peak text pool and update as many of them as necessary
 		# set the rest to blank
-		for i in range(len(peak_text_pool)):
-			if i < len(peak_masses):
-				peak_text_pool[i].set_text(str(peak_masses[i]))
-				peak_text_pool[i].set_x(peak_masses[i])
-				peak_text_pool[i].set_y(peak_intensities[i] + max_intensity * 0.01)
+		if label_peaks:
+			for i in range(len(peak_text_pool)):
+				if i < len(peak_masses):
+					peak_text_pool[i].set_text(str(peak_masses[i]))
+					peak_text_pool[i].set_x(peak_masses[i])
+					peak_text_pool[i].set_y(peak_intensities[i] + max_intensity * 0.01)
 
-			else:
-				peak_text_pool[i].set_text('')
-				peak_text_pool[i].set_x(0)
-				peak_text_pool[i].set_y(0)
+				else:
+					peak_text_pool[i].set_text('')
+					peak_text_pool[i].set_x(0)
+					peak_text_pool[i].set_y(0)
 
 
 		spec.set_data(masses, intensities)
-		peak.set_data(peak_masses, peak_intensities)
+		if label_peaks:
+			peak.set_data(peak_masses, peak_intensities)
 
 	def updateAuxPlot(self, ax, aux, info_text, highlight_rect, times, data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, scan_range, scan_start):
 		# unpack the frame window start and end
@@ -373,6 +412,7 @@ class Spectrum:
 		aux_range_2 = (None,None),
 		manual_norm_range=(0,0),
 		show_plot = True,
+		label_peaks = True,
 		local_norm_scan_range=(0,0)):
 		# unpack the beginning and end of the mass ranges and scan ranges
 		scan_start, scan_end = scan_range
@@ -433,7 +473,7 @@ class Spectrum:
 
 		# a function to update the plot for each frame
 		def update(frame):
-			self.updateSpecPlot(ax1, ln, pk, masses, intensities_list[frame], pkTxt, normalization)
+			self.updateSpecPlot(ax1, ln, pk, masses, intensities_list[frame], pkTxt, label_peaks, normalization)
 			self.updateAuxPlot(ax2, aux, infoTxt, rect, times, aux_data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
 			if aux_plot_type_2:
 				self.updateAuxPlot(ax3, aux_2, infoTxt, rect, times, aux_data_2, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
