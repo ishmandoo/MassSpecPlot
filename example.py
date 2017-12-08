@@ -17,6 +17,7 @@ if __name__ == '__main__':
 		mass_range = (None, None),
 		out_name = "test.mp4",
 		normalization=SpecNorm.SCAN,
+		label_peaks=True,
 		markers=[Marker("10 mM", 11000)],
 		aux_plot_type=AuxPlots.L1_VOLTAGE,
 		aux_plot_type_2=AuxPlots.L2_VOLTAGE,
@@ -48,6 +49,8 @@ if __name__ == '__main__':
 			  -- default is True
 	normalization -- sets the normalization of the spectra, see below for options
 	              -- default is SpecNorm.GLOBAL
+	label_peaks -- a boolean indicating whether peaks should be labeled in the spectrum plot
+				-- default is True
 	markers -- a list of markers in the aux plot, see below for details
 			-- default is an empty list, no markers
 	aux_plot_type -- the type of the aux plot left axis, see below for options
