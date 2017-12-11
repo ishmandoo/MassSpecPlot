@@ -182,7 +182,7 @@ class Spectrum:
 
 
 
-	def plotSpectrum(self, out_name=None, window_range=(None,None), mass_range=(None,None), label_peaks=True):
+	def plotSpectrum(self, out_name=None, window_range=(None,None), mass_range=(None,None), label_peaks=True, show_plot=True):
 
 		window_start, window_end = window_range
 		if window_start is None:
@@ -215,7 +215,10 @@ class Spectrum:
 		if not out_name == None:
 			plt.savefig(os.path.join(self.path, out_name))
 
-		plt.show()
+		if show_plot:
+			plt.show()
+
+		plt.close()
 
 	def makeSpectra(self, mass_range, scan_ranges):
 		# compile the overall spectrum for each mass window
@@ -453,8 +456,8 @@ class Spectrum:
 
 
 		_, source_currents = self.makeAuxData(scan_range, AuxPlots.SOURCE_CURRENT, aux_smoothing)
-		_, detector_currents = self.makeAuxData(scan_range, AuxPlots.DETECTOR_SOURCE_RATIO, aux_smoothing)
-		_, ratios = self.makeAuxData(scan_range, AuxPlots.DETECTOR_CURRENT, aux_smoothing)
+		_, detector_currents = self.makeAuxData(scan_range, AuxPlots.DETECTOR_CURRENT, aux_smoothing)
+		_, ratios = self.makeAuxData(scan_range, AuxPlots.DETECTOR_SOURCE_RATIO, aux_smoothing)
 		_, L1_voltages = self.makeAuxData(scan_range, AuxPlots.L1_VOLTAGE, aux_smoothing)
 		_, L2_voltages = self.makeAuxData(scan_range, AuxPlots.L2_VOLTAGE, aux_smoothing)
 
