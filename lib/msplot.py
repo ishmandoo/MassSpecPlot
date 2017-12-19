@@ -43,8 +43,6 @@ class Scan:
 		self.vl2 = vl2
 		self.p = p
 		self.intensity = intensity
-		if not intensity_cutoff is None:
-			sum([masses[mass] for mass in masses if mass > intensity_cutoff])
 	def __add__(self, other):
 		new_scan = Scan(self.n, self.t, self.i, self.vl1, self.vl2, self.p, self.intensity)
 		new_scan.masses = self.masses.copy()
@@ -57,6 +55,9 @@ class Scan:
 		return self.__add__(other)
 	def __repr__(self):
 		return str(self.masses)
+
+	def filterOnblast(self, onblast_cutoff):
+		self.intensity = sum([self.masses[mass] for mass in self.masses if mass > onblast_cutoff])
 
 class Marker:
 	def __init__(self, title, scan):
@@ -71,7 +72,7 @@ class Spectrum:
 		self.mass_end = None
 		self.s0 = 0
 
-	def load(self, path, specPath=None, auxPath=None, logPath=None):
+	def load(self, path, specPath=None, auxPath=None, logPath=None, onblast_cutoff=None):
 		lines = None
 		self.path = path
 		if specPath is None:
@@ -156,6 +157,9 @@ class Spectrum:
 					# if the mass is non-zero, add it to the dictionary, combining if necessary
 					if not mass == 0:
 						new_scan.masses[mass] += intensity
+
+				if not onblast_cutoff is None:
+					new_scan.filterOnblast(onblast_cutoff)
 
 				self.scans.append(new_scan)
 
