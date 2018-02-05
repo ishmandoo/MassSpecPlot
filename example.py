@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
 	s.makeAnimation(
 		window = 500,
-		step = 50,
+		step = 500,
 		scan_range = (None, None),
 		mass_range = (None, None),
 		out_name = "test.mp4",
@@ -21,10 +21,13 @@ if __name__ == '__main__':
 		markers=[Marker("10 mM", 11000)],
 		aux_plot_type=AuxPlots.L1_VOLTAGE,
 		aux_plot_type_2=AuxPlots.L2_VOLTAGE,
-		aux_smoothing=10,
-		aux_smoothing_2=10,
+		aux_smoothing=3,
+		aux_smoothing_2=3,
+		spec_smoothing=2,
 		aux_range=(None,None),
-		aux_range_2=(None,None)
+		aux_range_2=(None,None),
+		font_size=12,
+		frame_rate=10
 		)
 
 

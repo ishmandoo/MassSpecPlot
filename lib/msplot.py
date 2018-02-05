@@ -262,9 +262,10 @@ class Spectrum:
 		else:
 			raise ValueError('Invalid Aux Plot Type')
 
-		smooth_data = gaussian_filter(data, aux_smoothing)
+		if not aux_smoothing is None:
+			data = gaussian_filter(data, aux_smoothing)
 		times = np.array([scan.t for scan in self.scans[scan_start:scan_end]])
-		return times, smooth_data
+		return times, data
 
 	def findPeaks(self, masses, intensities):
 		# find peaks
@@ -274,7 +275,11 @@ class Spectrum:
 		peak_intensities = [intensities[i] for i in peak_indices]
 		return peak_masses, peak_intensities
 
-	def updateSpecPlot(self, ax, spec, peak, masses, intensities, peak_text_pool, label_peaks, normalization):
+	def updateSpecPlot(self, ax, spec, peak, masses, intensities, peak_text_pool, label_peaks, normalization, smoothing):
+		
+		if not smoothing is None:
+			intensities = gaussian_filter(intensities, smoothing)
+
 		peak_masses, peak_intensities = self.findPeaks(masses, intensities)
 
 		# find max peak height for use in setting axis limits
@@ -303,7 +308,6 @@ class Spectrum:
 					peak_text_pool[i].set_text('')
 					peak_text_pool[i].set_x(0)
 					peak_text_pool[i].set_y(0)
-
 
 		spec.set_data(masses, intensities)
 		if label_peaks:
@@ -339,7 +343,7 @@ class Spectrum:
 			L2_voltages[window_start_relative]
 			))
 
-	def initSpecPlot(self, ax, intensities_list, mass_range, normalization, manual_norm_range, local_norm_scan_range):
+	def initSpecPlot(self, ax, intensities_list, mass_range, normalization, manual_norm_range, local_norm_scan_range, font_size):
 		mass_start, mass_end = mass_range
 
 		# the size of the pool of text objects for displaying peak masses
@@ -347,8 +351,8 @@ class Spectrum:
 
 		ln, = ax.plot([], [], 'k-', animated=False, lw=1)
 		pk, = ax.plot([], [], 'r.', animated=False)
-		pkTxt = [ax.text(0, 0, '', verticalalignment='bottom', horizontalalignment='center', color='red', rotation=45) for i in range(peak_text_pool_size)]
-		infoTxt = ax.text(1.02, 0.95, "", verticalalignment='top', horizontalalignment='left', transform=ax.transAxes)
+		pkTxt = [ax.text(0, 0, '', verticalalignment='bottom', horizontalalignment='center', color='red', rotation=45, fontsize=font_size-2) for i in range(peak_text_pool_size)]
+		infoTxt = ax.text(1.02, 0.95, "", verticalalignment='top', horizontalalignment='left', transform=ax.transAxes, fontsize=font_size-2)
 
 
 		ax.set_xlim(mass_start - 0.05 * mass_end, 1.05 * mass_end)
@@ -362,13 +366,16 @@ class Spectrum:
 			scan_start, scan_end = local_norm_scan_range
 			ax.set_ylim(0, 1.2 * max([max(intensities) for intensities in intensities_list[local_norm_scan_range[0]:local_norm_scan_range[1]] ]))
 
-		ax.set_xlabel("m/q (amu/e)")
-		ax.set_ylabel("intensity")
+		ax.set_xlabel("m/q (amu/e)", fontsize=font_size)
+		ax.set_ylabel("intensity", fontsize=font_size)
+
+		ax.tick_params(labelsize=font_size-2)
+
 		ax.get_yaxis().set_ticks([])
 
 		return ln, pk, pkTxt, infoTxt
 
-	def initAuxPlot(self, ax, times, aux_data, manual_range, scan_range, markers, aux_plot_type, color):
+	def initAuxPlot(self, ax, times, aux_data, manual_range, scan_range, markers, aux_plot_type, color, font_size):
 		scan_start, scan_end = scan_range
 		manual_start, manual_end = manual_range
 		aux, = ax.plot([], [], color=color, animated=False, lw=1)
@@ -393,7 +400,7 @@ class Spectrum:
 				if scan_start < marker.scan < scan_end:
 					time = times[marker.scan - scan_start]
 					ax.plot([time, time], [y_lim_bot, y_lim_top], color = "red", dashes=[5,5], lw=1)
-					ax.text(time, y_lim_top, marker.title, verticalalignment='bottom', horizontalalignment='left', color='red', rotation=45)
+					ax.text(time, y_lim_top, marker.title, verticalalignment='bottom', horizontalalignment='left', color='red', rotation=45, fontsize=font_size-2)
 			except IndexError:
 				warn("Marker out of plot range")
 
@@ -401,8 +408,10 @@ class Spectrum:
 		ax.set_xlim(times[0] - 0.05 * times[-1], 1.05 * times[-1])
 		ax.set_ylim(y_lim_bot, y_lim_top)
 
-		ax.set_xlabel("time (s)")
-		ax.set_ylabel(aux_plot_type['x'], color=color)
+		ax.set_xlabel("time (s)", fontsize=font_size)
+		ax.set_ylabel(aux_plot_type['x'], color=color, fontsize=font_size)
+
+		ax.tick_params(labelsize=font_size-2)
 
 		return aux, rect
 
@@ -416,13 +425,16 @@ class Spectrum:
 		markers = [],
 		aux_plot_type=AuxPlots.SOURCE_CURRENT,
 		aux_plot_type_2=None,
-		aux_smoothing = 1,
-		aux_smoothing_2 = 1,
+		aux_smoothing = None,
+		aux_smoothing_2 = None,
+		spec_smoothing = None,
 		aux_range = (None,None),
 		aux_range_2 = (None,None),
 		manual_norm_range=(0,0),
 		show_plot = True,
 		label_peaks = True,
+		font_size = 10,
+		frame_rate = 3,
 		local_norm_scan_range=(0,0)):
 		# unpack the beginning and end of the mass ranges and scan ranges
 		scan_start, scan_end = scan_range
@@ -467,23 +479,23 @@ class Spectrum:
 
 		# make the figure, upper and lower plots, and text object pool
 		fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
-		plt.tight_layout(pad=2, w_pad=1.8, h_pad=5, rect=[0.05, 0, 0.85, 1])
+		plt.tight_layout(pad=2, w_pad=1.8, h_pad=5, rect=[0.05, 0.05, 0.85, 1])
 
 
-		ln, pk, pkTxt, infoTxt = self.initSpecPlot(ax1, intensities_list, mass_range, normalization, manual_norm_range, local_norm_scan_range)
-		aux, rect = self.initAuxPlot(ax2, times, aux_data, aux_range, scan_range, markers, aux_plot_type, "black")
+		ln, pk, pkTxt, infoTxt = self.initSpecPlot(ax1, intensities_list, mass_range, normalization, manual_norm_range, local_norm_scan_range, font_size)
+		aux, rect = self.initAuxPlot(ax2, times, aux_data, aux_range, scan_range, markers, aux_plot_type, "black", font_size)
 
 		ax3 = None
 		aux_2 = None
 		if aux_plot_type_2:
 			ax3 = ax2.twinx()
 			_, aux_data_2 = self.makeAuxData(scan_range, aux_plot_type_2, aux_smoothing_2)
-			aux_2, rect_2 = self.initAuxPlot(ax3, times, aux_data_2, aux_range_2, scan_range, markers, aux_plot_type_2, 'blue')
+			aux_2, rect_2 = self.initAuxPlot(ax3, times, aux_data_2, aux_range_2, scan_range, markers, aux_plot_type_2, 'blue', font_size)
 			rect_2.set_alpha(0)
 
 		# a function to update the plot for each frame
 		def update(frame):
-			self.updateSpecPlot(ax1, ln, pk, masses, intensities_list[frame], pkTxt, label_peaks, normalization)
+			self.updateSpecPlot(ax1, ln, pk, masses, intensities_list[frame], pkTxt, label_peaks, normalization, spec_smoothing)
 			self.updateAuxPlot(ax2, aux, infoTxt, rect, times, aux_data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
 			if aux_plot_type_2:
 				self.updateAuxPlot(ax3, aux_2, infoTxt, rect, times, aux_data_2, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
@@ -492,7 +504,7 @@ class Spectrum:
 
 
 
-		ani = animation.FuncAnimation(fig, update, frames=range(len(ranges)), blit=False)
+		ani = animation.FuncAnimation(fig, update, frames=range(len(ranges)), blit=False, interval=1000./frame_rate)
 		#Writer = writers['ffmpeg']
 		#FFWriter = Writer(fps=15)
 		#writer = animation.AVConvFileWriter()
