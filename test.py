@@ -28,12 +28,10 @@ if __name__ == '__main__':
 		step = 20,
 		scan_range = (None, None),
 		mass_range = (None, None),
-		out_name = "test2.mp4",
+		out_name = "test.mp4",
 		normalization=SpecNorm.SCAN,
 		label_peaks=True,
-		markers=[Marker("10 mM", 11000)],
 		aux_plot_type=AuxPlots.DETECTOR_CURRENT,
-		aux_smoothing=10,
-		aux_range=(None,None),
-		aux_range_2=(None,None)
+		aux_plot_type_2=AuxPlots.DETECTOR_SOURCE_RATIO,
+		aux_smoothing=10
 		)

@@ -7,6 +7,7 @@ from bisect import bisect_left
 import glob
 from warnings import warn
 from enum import Enum
+import re
 
 class AuxPlots():
 	SOURCE_CURRENT = {'key': 0, 'x':'current (nA)', 'multiplier': 1000000000.}

@@ -29,6 +29,7 @@ class AuxPlots:
 	SOURCE_CURRENT = {'x':'current (nA)', 'multiplier': 1000000000.}
 	DETECTOR_CURRENT = {'x':'detector counts per scan', 'multiplier': 1./204800.}
 	DETECTOR_SOURCE_RATIO = {'x':'ratio (counts per scan/nA)', 'multiplier': .000000001/204800.}
+	EFFICIENCY = {'x':'efficiency', 'multiplier': 150./(204800.*0.61*6.24*10**18)}
 	L1_VOLTAGE = {'x':'L1 voltage (V)', 'multiplier': 1000.}
 	L2_VOLTAGE = {'x':'L2 voltage (V)', 'multiplier': 1000.}
 	PRESSURE = {'x':'pressure (kPa)', 'multiplier': 1.}
@@ -250,6 +251,9 @@ class Spectrum:
 		elif aux_plot_type == AuxPlots.DETECTOR_SOURCE_RATIO:
 			data = np.array([(scan.intensity / scan.i) * aux_plot_type['multiplier'] for scan in self.scans[scan_start:scan_end]])
 
+		elif aux_plot_type == AuxPlots.EFFICIENCY:
+			data = np.array([(scan.intensity / scan.i) * aux_plot_type['multiplier'] for scan in self.scans[scan_start:scan_end]])
+
 		elif aux_plot_type == AuxPlots.L1_VOLTAGE:
 			data = np.array([scan.vl1 * aux_plot_type['multiplier'] for scan in self.scans[scan_start:scan_end]])
 
@@ -433,7 +437,7 @@ class Spectrum:
 		manual_norm_range=(0,0),
 		show_plot = True,
 		label_peaks = True,
-		font_size = 10,
+		font_size = 12,
 		frame_rate = 3,
 		local_norm_scan_range=(0,0)):
 		# unpack the beginning and end of the mass ranges and scan ranges

@@ -59,7 +59,9 @@ if __name__ == '__main__':
 	aux_plot_type -- the type of the aux plot left axis, see below for options
 				  -- default is AuxPlots.SOURCE_CURRENT
 	aux_smoothing -- the width of the gaussian smoothing on the aux plot left axis
-				  -- default is 1
+				  -- default is no smoothing
+	spec_smoothing -- the width of the gaussian smoothing on the aux plot left axis
+				  -- default is no smoothing
 	aux_range -- a tuple giving the bounds of the y-axis of the aux plot left axis
 			  -- a None in either positions gives an automatic bound
 			  -- default is (None, None)	
@@ -76,6 +78,11 @@ if __name__ == '__main__':
 	local_norm_scan_range -- a tuple giving the range of windows to use for the normalization
 						  -- the y-axis of the spectra will be set using the highest peak in the window range
 						  -- default is (0,0), which breaks the plot
+	frame_rate -- a number setting the frame rate in frames per second
+			   -- default is 3 fps
+	font_size -- a number setting the font size of the titles
+			  -- other font sizes are set relative to this
+			  -- default is 12
 
 
 	AuxPlots options:
