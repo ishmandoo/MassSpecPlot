@@ -531,7 +531,8 @@ class Spectrum:
 		aux_smoothing_2 = 1,
 		aux_range = (None,None),
 		aux_range_2 = (None,None),
-		out_name = None
+		out_name = None,
+		font_size = 12
 		):
 		scan_start, scan_end = scan_range
 		if scan_start is None:
@@ -543,14 +544,14 @@ class Spectrum:
 
 		fig, ax = plt.subplots()		
 
-		aux, rect = self.initAuxPlot(ax, times, aux_data, aux_range, scan_range, markers, aux_plot_type, "black")
+		aux, rect = self.initAuxPlot(ax, times, aux_data, aux_range, scan_range, markers, aux_plot_type, "black", font_size)
 
 		ax2 = None
 		aux_2 = None
 		if aux_plot_type_2:
 			ax2 = ax.twinx()
 			_, aux_data_2 = self.makeAuxData(scan_range, aux_plot_type_2, aux_smoothing_2)
-			aux_2, rect_2 = self.initAuxPlot(ax2, times, aux_data_2, aux_range_2, scan_range, markers, aux_plot_type_2, 'blue')
+			aux_2, rect_2 = self.initAuxPlot(ax2, times, aux_data_2, aux_range_2, scan_range, markers, aux_plot_type_2, 'blue', font_size)
 
 
 		self.updateAuxPlot(ax, aux, infoTxt, rect, times, aux_data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
