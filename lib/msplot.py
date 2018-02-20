@@ -326,12 +326,13 @@ class Spectrum:
 		window_start_relative = window_start - scan_start
 		window_end_relative = window_end - scan_start
 
-		# find the start and end time for the window
-		window_start_time = times[window_start_relative]
-		window_end_time = times[window_end_relative]
 
 		# update the highlighted window
 		if not highlight_rect is None:
+			# find the start and end time for the window
+			window_start_time = times[window_start_relative]
+			window_end_time = times[window_end_relative]
+
 			highlight_rect.set_x(window_start_time)
 			highlight_rect.set_width(window_end_time - window_start_time)
 
