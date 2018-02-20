@@ -408,7 +408,7 @@ class Spectrum:
 				if scan_start < marker.scan < scan_end:
 					time = times[marker.scan - scan_start]
 					ax.plot([time, time], [y_lim_bot, y_lim_top], color = "red", dashes=[5,5], lw=1)
-					ax.text(time, y_lim_top, marker.title, verticalalignment='bottom', horizontalalignment='left', color='red', rotation=45, fontsize=font_size-4)
+					ax.text(time, y_lim_top, marker.title, verticalalignment='bottom', horizontalalignment='left', color='red', rotation=45, fontsize=font_size-6)
 			except IndexError:
 				warn("Marker out of plot range")
 
