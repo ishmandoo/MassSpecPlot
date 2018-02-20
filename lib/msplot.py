@@ -537,6 +537,7 @@ class Spectrum:
 		aux_range_2 = (None,None),
 		scan_range = (None,None),
 		out_name = None,
+		show_plot = True,
 		font_size = 12
 		):
 		scan_start, scan_end = scan_range
