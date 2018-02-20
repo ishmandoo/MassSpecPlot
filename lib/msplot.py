@@ -531,6 +531,7 @@ class Spectrum:
 		aux_smoothing_2 = 1,
 		aux_range = (None,None),
 		aux_range_2 = (None,None),
+		scan_range = (None,None),
 		out_name = None,
 		font_size = 12
 		):
@@ -544,6 +545,7 @@ class Spectrum:
 
 		fig, ax = plt.subplots()		
 
+		times, aux_data = self.makeAuxData(scan_range, aux_plot_type, aux_smoothing)
 		aux, rect = self.initAuxPlot(ax, times, aux_data, aux_range, scan_range, markers, aux_plot_type, "black", font_size)
 
 		ax2 = None
