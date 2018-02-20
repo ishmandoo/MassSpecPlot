@@ -564,6 +564,14 @@ class Spectrum:
 		if aux_plot_type_2:
 			self.updateAuxPlot(ax2, aux_2, None, None, times, aux_data_2, None, None, None, None, None, scan_range, scan_start)
 
+		if not out_name == None:
+			plt.savefig(os.path.join(self.path, out_name))
+
+		if show_plot:
+			plt.show()
+
+		plt.close()
+
 
 
 def toSeconds(hms, hms0):
