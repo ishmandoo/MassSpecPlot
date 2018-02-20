@@ -559,9 +559,9 @@ class Spectrum:
 			aux_2, rect_2 = self.initAuxPlot(ax2, times, aux_data_2, aux_range_2, scan_range, markers, aux_plot_type_2, 'blue', font_size)
 
 
-		self.updateAuxPlot(ax, aux, None, None, times, aux_data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
+		self.updateAuxPlot(ax, aux, None, None, times, aux_data, None, None, None, None, None, scan_range, scan_start)
 		if aux_plot_type_2:
-			self.updateAuxPlot(ax2, aux_2, None, None, times, aux_data_2, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
+			self.updateAuxPlot(ax2, aux_2, None, None, times, aux_data_2, None, None, None, None, None, scan_range, scan_start)
 
 
 
