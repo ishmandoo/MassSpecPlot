@@ -187,7 +187,14 @@ class Spectrum:
 
 
 
-	def plotSpectrum(self, out_name=None, window_range=(None,None), mass_range=(None,None), label_peaks=True, show_plot=True):
+	def plotSpectrum(self, 
+		out_name=None, 
+		window_range=(None,None), 
+		mass_range=(None,None), 
+		label_peaks=True, 
+		show_plot=True, 
+		font_size=12,
+		spec_smoothing=1):
 
 		window_start, window_end = window_range
 		if window_start is None:
@@ -214,8 +221,8 @@ class Spectrum:
 		fig, (ax1) = plt.subplots(1, 1, figsize=(10, 5))
 		plt.tight_layout(pad=2, w_pad=1.8, h_pad=5)
 		
-		ln, pk, pkTxt, infoTxt = self.initSpecPlot(ax1, [intensities], mass_range, normalization, None, None)
-		self.updateSpecPlot(ax1, ln, pk, masses, intensities, pkTxt, label_peaks, normalization)
+		ln, pk, pkTxt, infoTxt = self.initSpecPlot(ax1, [intensities], mass_range, normalization, None, None, font_size)
+		self.updateSpecPlot(ax1, ln, pk, masses, intensities, pkTxt, label_peaks, normalization, spec_smoothing)
 
 		if not out_name == None:
 			plt.savefig(os.path.join(self.path, out_name))
