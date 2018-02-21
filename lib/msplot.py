@@ -194,7 +194,7 @@ class Spectrum:
 		label_peaks=True, 
 		show_plot=True, 
 		font_size=12,
-		spec_smoothing=1):
+		spec_smoothing=None):
 
 		window_start, window_end = window_range
 		if window_start is None:
