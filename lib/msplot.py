@@ -346,7 +346,7 @@ class Spectrum:
 		aux.set_data(times[:window_end_relative],data[:window_end_relative])
 		
 		if not info_text is None:
-			info_text.set_text("scans %d - %d\n%.0fs - %.0fs\nsource %.2f nA\ndetector %.2e\nefficiencies %.2e\nL1 %d V\nL2 %d V" % (
+			info_text.set_text("scans %d - %d\n%.0fs - %.0fs\nsource %.2f nA\ndetector %.2e\nefficiency %.2e\nL1 %d V\nL2 %d V" % (
 				window_start, 
 				window_end, 
 				window_start_time, 
