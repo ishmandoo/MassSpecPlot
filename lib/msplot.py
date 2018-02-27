@@ -324,7 +324,7 @@ class Spectrum:
 		if label_peaks:
 			peak.set_data(peak_masses, peak_intensities)
 
-	def updateAuxPlot(self, ax, aux, info_text, highlight_rect, times, data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, scan_range, scan_start):
+	def updateAuxPlot(self, ax, aux, info_text, highlight_rect, times, data, source_currents, detector_currents, efficiencies, L1_voltages, L2_voltages, scan_range, scan_start):
 		# unpack the frame window start and end
 		window_start, window_end = scan_range
 
@@ -346,14 +346,14 @@ class Spectrum:
 		aux.set_data(times[:window_end_relative],data[:window_end_relative])
 		
 		if not info_text is None:
-			info_text.set_text("scans %d - %d\n%.0fs - %.0fs\nsource %.2f nA\ndetector %.2e\nratio %.2e\nL1 %d V\nL2 %d V" % (
+			info_text.set_text("scans %d - %d\n%.0fs - %.0fs\nsource %.2f nA\ndetector %.2e\nefficiencies %.2e\nL1 %d V\nL2 %d V" % (
 				window_start, 
 				window_end, 
 				window_start_time, 
 				window_end_time, 
 				source_currents[window_start_relative], 
 				detector_currents[window_start_relative], 
-				ratios[window_start_relative], 
+				efficiencies[window_start_relative], 
 				L1_voltages[window_start_relative], 
 				L2_voltages[window_start_relative]
 				))
@@ -488,7 +488,7 @@ class Spectrum:
 
 		_, source_currents = self.makeAuxData(scan_range, AuxPlots.SOURCE_CURRENT, aux_smoothing)
 		_, detector_currents = self.makeAuxData(scan_range, AuxPlots.DETECTOR_CURRENT, aux_smoothing)
-		_, ratios = self.makeAuxData(scan_range, AuxPlots.DETECTOR_SOURCE_RATIO, aux_smoothing)
+		_, efficiencies = self.makeAuxData(scan_range, AuxPlots.EFFICIENCY, aux_smoothing)
 		_, L1_voltages = self.makeAuxData(scan_range, AuxPlots.L1_VOLTAGE, aux_smoothing)
 		_, L2_voltages = self.makeAuxData(scan_range, AuxPlots.L2_VOLTAGE, aux_smoothing)
 
@@ -511,9 +511,9 @@ class Spectrum:
 		# a function to update the plot for each frame
 		def update(frame):
 			self.updateSpecPlot(ax1, ln, pk, masses, intensities_list[frame], pkTxt, label_peaks, normalization, spec_smoothing)
-			self.updateAuxPlot(ax2, aux, infoTxt, rect, times, aux_data, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
+			self.updateAuxPlot(ax2, aux, infoTxt, rect, times, aux_data, source_currents, detector_currents, efficiencies, L1_voltages, L2_voltages, ranges[frame], scan_start)
 			if aux_plot_type_2:
-				self.updateAuxPlot(ax3, aux_2, infoTxt, rect, times, aux_data_2, source_currents, detector_currents, ratios, L1_voltages, L2_voltages, ranges[frame], scan_start)
+				self.updateAuxPlot(ax3, aux_2, infoTxt, rect, times, aux_data_2, source_currents, detector_currents, efficiencies, L1_voltages, L2_voltages, ranges[frame], scan_start)
 			return [ln, pk, aux, rect] + pkTxt
 
 
